@@ -54,14 +54,44 @@ cartelera = {
 
 def verCartelera(dia):
     funciones = cartelera[dia]
+    print(f"\n================================================ {dia} ================================================")
     for funcion in funciones:
-        print( f"Pelicula: {funcion['pelicula']} | Sala: {funcion['sala']} | {funcion['horario']} | {funcion['formato']}")
+            print( f"Pelicula: {funcion['pelicula']} | Sala: {funcion['sala']} | {funcion['horario']} | {funcion['formato']}")
+
+def mostrarAsientos(dia, sala, horario):
+    asientos = cartelera[dia]
+    for asiento in asientos:
+        if asiento["sala"] == sala and asiento["horario"] == horario:
+            print(f"Pelicula: {asiento['pelicula']} | Sala seleccionada: #{asiento['sala']} | En horario {asiento['horario']} | En: {asiento['formato']}.")
+
+            print(f"\n========== Asientos sala: #{asiento['sala']} ==========")
+            matriz  = []
+            for a in range(5):
+                fila = ['  .'] * 6
+                matriz.append(fila)
+            return matriz
+
+def mostrarMatriz(matriz_a_mostrar):
+    listaNums = []
+
+    for c in range(1,7):
+        columnas = str(c)
+        listaNums.append(columnas)
+    resultado = "   ".join(listaNums)
+    print(f"     {resultado}")
+
+    for indice, fila in enumerate(matriz_a_mostrar):
+        letraFila = chr(indice + 65)
+        filaVisual = " ".join(fila)
+
+        print(f"{letraFila}: {filaVisual}")
+
 
 
 opcion = 0
 
 while opcion != 6:
-    print("""===== CineMax - Sistema de Reservas =====
+    print("""\n===== CineMax - Sistema de Reservas =====
 1. Ver cartelera de un día
 2. Mostrar asientos de una función
 3. Reservar asiento
@@ -73,36 +103,35 @@ while opcion != 6:
     opcion = int(input("Seleccione una opcion: "))
 
     if opcion == 1:
-        dia = input("Seleccion una opcion (Lunes-Domingo): ")
+        dia = input("Seleccion una opcion (Lunes-Domingo): ").capitalize().strip()
         verCartelera(dia)
-    elif opcion == "2":
-        ...
+
+    elif opcion == 2:
+        dia = input("Seleccione el dia a mostrar (Lunes-Domingo): ").capitalize().strip()
+        verCartelera(dia)
+
+        encontrado = False
+
+
+        while not encontrado:
+            horario = input("Seleccione la hora (pm): ").strip()
+            verCartelera(dia)
+            sala = int(input("Seleccione la sala: "))
+
+            for funcion in cartelera[dia]:
+                if horario == funcion["horario"] and sala == funcion["sala"]:
+                    encontrado = True
+                    break
+            if not encontrado:
+                verCartelera(dia)
+                print("======= Hora incorrecta o sala incorrecta. Intente de nuevo. =======")
+
+
+
+        mostrar_asientos = mostrarAsientos(dia,sala, horario)
+        mostrarMatriz(mostrar_asientos)
+
     elif opcion == 6:
         print("Saliendo...")
     else:
         print("Opcion invalida")
-
-
-
-verCartelera("Martes")
-
-
-def mostrarAsientos():
-    matriz  = []
-    for a in range(5):
-        fila = ['.'] * 6
-        matriz.append(fila)
-    return matriz
-
-mostrar_asientos = mostrarAsientos()
-
-
-def mostrarMatriz(matriz_a_mostrar):
-    for indice, fila in enumerate(matriz_a_mostrar):
-        letraFila = chr(indice + 65)
-        filaVisual = " ".join(fila)
-
-        print(f"{letraFila}: {filaVisual}")
-
-
-mostrarMatriz(mostrar_asientos)
