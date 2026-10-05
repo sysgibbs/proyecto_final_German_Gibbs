@@ -206,9 +206,8 @@ def InicializarSistema():
 
 
 def obtenerFuncion():
-    diaValido = False
 
-    while not diaValido:
+    while True:
         dia = (
             input("Seleccione el dia a mostrar (Lunes-Domingo): ").capitalize().strip()
         )
@@ -228,7 +227,7 @@ def obtenerFuncion():
 
         try:
             sala = int(input("Seleccione la sala: "))
-        except (ValueError, KeyError):
+        except (ValueError):
             print("Sala invalida")
             continue
 
@@ -284,7 +283,7 @@ def mostrarAsientos(dia, horario, sala):
             )
 
             print(f"\n========== Asientos sala: #{asiento['sala']} ==========")
-            return asiento["asientos"]
+            return asiento["asientos"], asiento["reservas"]
 
 
 def contarAsientos(matriz):
@@ -303,6 +302,7 @@ def contarAsientos(matriz):
 
 
 def disponibilidadDia(dia):
+
     if dia not in cartelera:
         print("El dia seleccionado no existe.")
         return
@@ -310,8 +310,11 @@ def disponibilidadDia(dia):
     for funcion in cartelera[dia]:
         libres, ocupados = contarAsientos(funcion["asientos"])
 
+        total = libres + ocupados
+        porcentaje = (ocupados / total) * 100
+
         print(
-            f"Pelicula: {funcion['pelicula']} | Sala: {funcion['sala']} | Horario: {funcion['horario']} | Libres: {libres} | Ocupados: {ocupados}"
+            f"Pelicula: {funcion['pelicula']} | Sala: {funcion['sala']} | Horario: {funcion['horario']} | Libres: {libres} | Ocupados: {ocupados} | Total asientos ocupados: {porcentaje:.1f}%"
         )
 
 
@@ -339,23 +342,40 @@ while opcion != 6:
         dia = input("Seleccion una opcion (Lunes-Domingo): ").capitalize().strip()
         verCartelera(dia)
 
+
     elif opcion == 2:
 
         dia, horario, sala = obtenerFuncion()
-        mostrar_asientos = mostrarAsientos(dia, horario, sala)
-        mostrarMatriz(mostrar_asientos)
+
+        matriz, reservas = mostrarAsientos(dia, horario, sala)
+
+        if matriz is not None:
+            mostrarMatriz(matriz)
+
+            print("\n================ Reservas ================")
+
+            if not reservas:
+                print("No hay reservas para esta funcion.")
+
+            else:
+                for asiento, nombre in reservas.items():
+                    print(f"Asiento {asiento}: reservado por {nombre}")
+
 
     elif opcion == 3:
         print("\n================ Asiento a reservar ================")
 
         dia, horario, sala = obtenerFuncion()
 
-        matriz = mostrarAsientos(dia, horario, sala)
+        matriz, reservas = mostrarAsientos(dia, horario, sala)
         mostrarMatriz(matriz)
+
         while True:
+
             asiento = input("Seleccione el asiento (Ej: A2): ").upper().strip()
 
-            if len(asiento) < 2 or not asiento[0].isalpha() or not asiento[1].isdigit():
+            if len(asiento) < 2 or not asiento[0].isalpha() or not asiento[1:].isdigit():
+
                 print("Formato invalido. Ingrese una letra seguida de un numero.")
                 continue
 
@@ -368,25 +388,40 @@ while opcion != 6:
                 print("El asiento seleccionado no existe en la sala")
 
         if matriz[fila][columna] == ".":
+            nombre = input("Ingrese el nombre de quien reserva: ").strip()
+
             matriz[fila][columna] = "X"
-            print(f"{dia} - Asiento {asiento} reservado con exito.")
+            reservas[asiento] = nombre
+
+            print(f"{nombre} | {dia} | Asiento: {asiento} reservado con exito.")
         else:
             print("Lo sentimos este asiento esta ocupado.")
 
     elif opcion == 4:
+
         print("\n================ Reserva a cancelar ================")
 
         dia, horario, sala = obtenerFuncion()
 
-        matriz = mostrarAsientos(dia, horario, sala)
+        matriz, reservas = mostrarAsientos(dia, horario, sala)
         mostrarMatriz(matriz)
 
+        if not reservas:
+            print("No hay reservas para esta funcion.")
+        else:
+            print("\n================ Reservas actuales ================")
+
+            for asiento, nombre in reservas.items():
+                print(f"Asiento {asiento}: reservado por {nombre}")
+
         while True:
+
             asiento = (
                 input("Seleccione el asiento a cancelar (Ej: A2): ").upper().strip()
             )
 
-            if len(asiento) < 2 or not asiento[0].isalpha() or not asiento[1].isdigit():
+            if len(asiento) < 2 or not asiento[0].isalpha() or not asiento[1:].isdigit():
+
                 print("Formato invalido. Ingrese una letra seguida de un numero.")
                 continue
 
@@ -400,6 +435,10 @@ while opcion != 6:
 
         if matriz[fila][columna] == "X":
             matriz[fila][columna] = "."
+
+            if asiento in reservas:
+                del reservas[asiento]
+
             print(f"{dia} = Reserva del asiento {asiento} cancelado con exito.")
         else:
             print("El asiento seleccionado ya estaba libre.")
